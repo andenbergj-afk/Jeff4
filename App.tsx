@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Layout, Zap, Target, BarChart2, Download, Menu, X, CheckSquare, Calendar as CalendarIcon, Loader2 } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 import { Tab, AppState, StudyLog, QuestionData, QuestionLog, UserSettings, TimerMode, PomoState } from './types';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
@@ -1114,6 +1115,7 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
+      <Analytics />
     </div>
   );
 };
