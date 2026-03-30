@@ -8,6 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "build:android": "vite build && npx cap copy && npx cap open android",
+    "build:apk": "vite build && npx cap sync android && cd android && ./gradlew assembleDebug && echo 'APK gerado em: android/app/build/outputs/apk/debug/app-debug.apk'",
+    "build:apk:release": "vite build && npx cap sync android && cd android && ./gradlew assembleRelease && echo 'APK gerado em: android/app/build/outputs/apk/release/app-release-unsigned.apk'",
     "test:joao": "npx tsx test-joao-visual.ts",
     "test:joao-simple": "npx tsx test-joao-simulation.ts",
     "test:joao-future": "npx tsx test-joao-future-reviews.ts",
