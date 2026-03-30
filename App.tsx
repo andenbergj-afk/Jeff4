@@ -69,8 +69,12 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(getTodayISO());
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [xpAnimation, setXpAnimation] = useState<{ amount: number; show: boolean; key: number }>({ amount: 0, show: false, key: 0 });
   
   const [appData, setAppDataState] = useState<AppState>(INITIAL_STATE);
+  const prevXpRef = useRef<number>(0);
+  // Tracks whether the initial XP value has been synced from storage (to avoid false animation on load)
+  const xpInitializedRef = useRef(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -81,6 +85,31 @@ const App: React.FC = () => {
     }, 30000);
     return () => clearInterval(interval);
   }, [currentDate]);
+
+  // Request browser notification permission once data is loaded
+  useEffect(() => {
+    if (!isDataLoaded) return;
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, [isDataLoaded]);
+
+  // Track XP changes and trigger floating animation
+  useEffect(() => {
+    if (!isDataLoaded) return;
+    const currentXP = appData.settings.xp || 0;
+    if (!xpInitializedRef.current) {
+      // First run after data load: just sync the ref, no animation
+      xpInitializedRef.current = true;
+      prevXpRef.current = currentXP;
+      return;
+    }
+    const diff = currentXP - prevXpRef.current;
+    if (diff > 0) {
+      setXpAnimation(prev => ({ amount: diff, show: true, key: prev.key + 1 }));
+    }
+    prevXpRef.current = currentXP;
+  }, [appData.settings.xp, isDataLoaded]);
 
   useEffect(() => {
     // Remove all theme classes first
@@ -381,6 +410,12 @@ const App: React.FC = () => {
   
   const lastSaveRef = useRef<number>(0);
 
+  const sendTimerNotification = useCallback((title: string, body: string, tag: string) => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, { body, icon: '/icons/icon-192x192.png', tag });
+    }
+  }, []);
+
   const setTimerSession = useCallback((updater: (prev: typeof timerSession) => typeof timerSession) => {
     setTimerSessionState(prev => {
       const next = updater(prev);
@@ -578,8 +613,22 @@ const App: React.FC = () => {
                 
                 // Mark that we should update review state when work phase ends
                 shouldUpdateReviewState = true;
+
+                // System notification when work session ends
+                sendTimerNotification(
+                  '🍅 Pomodoro Concluído!',
+                  `Sessão de ${prev.pomoPreset} min finalizada. Hora do descanso!`,
+                  'pomodoro-end'
+                );
               } else {
                 if (breakEndSoundRef.current) breakEndSoundRef.current.play().catch(() => {});
+
+                // System notification when break ends
+                sendTimerNotification(
+                  '⚡ Intervalo Encerrado!',
+                  'Hora de voltar ao foco. Vamos lá!',
+                  'break-end'
+                );
               }
 
               if (prev.pomoState === 'break') {
@@ -630,7 +679,7 @@ const App: React.FC = () => {
       }, 500);
       return () => clearInterval(timerInterval);
     }
-  }, [timerSession.pomoActive, timerSession.stopwatchActive, setTimerSession, updateReviewStateForTopic, appData.subjects]);
+  }, [timerSession.pomoActive, timerSession.stopwatchActive, setTimerSession, updateReviewStateForTopic, appData.subjects, sendTimerNotification]);
 
   const t = useMemo(() => TRANSLATIONS[appData.settings.language || 'pt-BR'], [appData.settings.language]);
 
@@ -1111,6 +1160,20 @@ const App: React.FC = () => {
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span className="font-bold text-sm">{toastMessage}</span>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* XP Earned Animation */}
+      {xpAnimation.show && (
+        <div
+          key={xpAnimation.key}
+          className="fixed bottom-32 right-8 z-50 pointer-events-none animate-xp-float"
+          onAnimationEnd={() => setXpAnimation(prev => ({ ...prev, show: false }))}
+        >
+          <div className="flex items-center gap-2 bg-violet-600/90 backdrop-blur-sm text-white font-black text-xl px-5 py-2.5 rounded-2xl shadow-2xl border border-violet-400/50">
+            <span className="text-yellow-300">⚡</span>
+            <span>+{xpAnimation.amount} XP</span>
           </div>
         </div>
       )}

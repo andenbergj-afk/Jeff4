@@ -200,6 +200,23 @@
         animation: bounce-subtle 2s ease-in-out infinite;
       }
 
+      @keyframes xp-float {
+        0%   { transform: translateY(0)     scale(1);   opacity: 1; }
+        60%  { transform: translateY(-50px) scale(1.15); opacity: 1; }
+        100% { transform: translateY(-80px) scale(1.2); opacity: 0; }
+      }
+      .animate-xp-float {
+        animation: xp-float 2s ease-out forwards;
+      }
+
+      @keyframes xp-bar-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(167, 139, 250, 0.4); }
+        50%       { box-shadow: 0 0 0 8px rgba(167, 139, 250, 0); }
+      }
+      .animate-xp-bar-pulse {
+        animation: xp-bar-pulse 0.8s ease-out 2;
+      }
+
       /* Theme-specific icon and text colors */
       /* Light Theme */
       .light-theme .theme-icon {
