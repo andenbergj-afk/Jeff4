@@ -157,6 +157,7 @@ print_ok "Dependências Node.js instaladas"
 # =============================================================================
 print_step "Fazendo build do projeto web..."
 
+export NODE_OPTIONS="--max-old-space-size=1536"
 npm run build
 
 print_ok "Build web concluído"
