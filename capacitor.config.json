@@ -1,0 +1,6 @@
+{
+  "appId": "com.jeff4.app",
+  "appName": "Focus",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}
